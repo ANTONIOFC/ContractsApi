@@ -1,9 +1,10 @@
-
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
+from typing import AsyncIterator, List
 from sqlalchemy import Float
 from sqlalchemy.orm import Session
+from seed import seed_data
 import crud
 import models
 import schemas
@@ -12,7 +13,12 @@ from datetime import date
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await seed_data()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 origins = ["*"]
 
